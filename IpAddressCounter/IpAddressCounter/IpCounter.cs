@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace IPAddressCounter
 {
     class IpCounter
     {
-        private const int maxIp = 256;
+        private const byte max = 255;
+        private static string[] lowerBlocks;
+        private static string[] upperBlocks;
+        private static int? startingPointIndex;
         private static List<string> IpAddresses;
         public static void GetAllIpAddresses(string firstIP, string secondIP)
         {
@@ -48,11 +52,11 @@ namespace IPAddressCounter
                 string ip = BuildIp(i, firstIpArray);
                 bool success = false;
 
-                for (int j = firstIpArray[i]; j < maxIp; ++j)
+                for (int j = firstIpArray[i]; j < max; ++j)
                 {
                     IpAddresses.Add(String.Concat(ip, j));
 
-                    if (j == maxIp - 1)
+                    if (j == max - 1)
                     {
                         //IpAddresses.Add(String.Concat(ip, "0"));
                         success = true;
@@ -75,6 +79,41 @@ namespace IPAddressCounter
                 sb.Append(array[i] + ".");
 
             return sb.ToString();
+        }
+
+        private static bool IsValidIp(string ip)
+        {
+            var regex = new Regex(@"\d+");
+            string[] blocks = ip.Split('.');
+            if (blocks.Length != 4) return false;
+
+            foreach (string val in blocks)
+                if (regex.Match(val).Length < 4) return false;
+                else if (Convert.ToInt16(val) > max) return false;
+
+            return true;
+        }
+
+        private static bool IsValidOperation(string lowerBound, string upperBound)
+        {
+            if (!IsValidIp(lowerBound) || !IsValidIp(upperBound))
+                return false;
+
+            lowerBlocks = lowerBound.Split('.');
+            upperBlocks = upperBound.Split('.');
+
+            for (int i = 0; i < lowerBlocks.Length; i++)
+            {
+                if (Convert.ToByte(lowerBlocks[i]) <= Convert.ToByte(upperBound[i]))
+                    continue;
+                else
+                {
+                    startingPointIndex = i;
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
