@@ -53,7 +53,6 @@ namespace IPAddressCounter
             int index = smallestIpGroupIndex;
             IpAddresses = new List<string>();
 
-            // starting from the back
             while (lowerBlocks[index] < upperBlocks[index])
             {
                 for (int i = length - 1; i >= index; i--)
