@@ -18,42 +18,82 @@ namespace IPAddressCounter
         public static void GetAllIpAddresses(string firstIP, string secondIP)
         {
             if (!IsValidOperation(firstIP, secondIP)) return;
+            if (DetermineLowerstIpBlock())
+                Compute();
+            else return;
+        }
 
-            while (lowerBlocks[smallestIpGroupIndex] < upperBlocks[smallestIpGroupIndex])
+        private static void Compute()
+        {
+            DescendIpBlock();
+        }
+
+        /// <summary>
+        /// Start ascending Ip Blocks once the former
+        /// lowest block of the lower IP block is the same 
+        /// with its coreesponding block in the upper Ip Block
+        /// </summary>
+        private static void AscendIPBlock()
+        {
+            DetermineLowerstIpBlock();
+            while(lowerBlocks[3] < upperBlocks[4])
             {
-                CalculateIP();
+                int i = smallestIpGroupIndex;
+
             }
         }
 
-        private static void CalculateIP()
+        /// <summary>
+        /// Start descending the Ip Blocks until the lowest
+        /// is reached
+        /// </summary>
+        private static void DescendIpBlock()
         {
             int length = lowerBlocks.Length;
             int index = smallestIpGroupIndex;
             IpAddresses = new List<string>();
 
+            // starting from the back
             while (lowerBlocks[index] < upperBlocks[index])
             {
-                for (int i = length; i >= index; i--)
+                for (int i = length - 1; i >= index; i--)
                 {
                     string ip = BuildIp(i, lowerBlocks);
 
-                    // starting from the back
-                    for (int j = lowerBlocks[length - 1]; j <= max; ++j)
+                    for (int j = lowerBlocks[i]; j <= max; j++)
                     {
-                        var parts = Regex.Split(ip, @"\.\.");
-                        if (parts.Length != 2)
+                        if(!Regex.IsMatch(ip, @"\.\."))
                         {
                             IpAddresses.Add(String.Concat(ip, j));
                             if (j == max)
-                                lowerBlocks = Array.ConvertAll(
-                                    IpAddresses.Last().Split(' '), byte.Parse); 
+                                lowerBlocks = 
+                                    Array.ConvertAll(IpAddresses.Last().Split('.'), byte.Parse); 
+
                             if (smallestIpGroupIndex == (length - 1)) return;
-                        }
-                        else
-                            IpAddresses.Add(String.Concat(parts[0], ".", j, ".", parts[1]));
+                       }
+                       else
+                       {
+                           var parts = Regex.Split(ip, @"\.\.");
+                           if (i != index)
+                               for (int k = j + 1; k <= max; k++)
+                               {
+                                   IpAddresses.Add(String.Concat(parts[0], ".", j, ".", parts[1]));
+                                   i += 2;
+                                   break;
+                               }
+                           else if (i == index)
+                           {
+                               for (int k = j + 1; k <= upperBlocks[i]; k++)
+                                   IpAddresses.Add(String.Concat(parts[0], ".", k, ".", parts[1]));
+
+                               lowerBlocks = Array.ConvertAll(IpAddresses.Last().Split('.'), byte.Parse);
+                               break;
+                           }
+                       }
                     }
                 }
             }
+            AscendIPBlock();
         }
 
         /// <summary>
@@ -66,13 +106,13 @@ namespace IPAddressCounter
         private static string BuildIp(int index, byte[] array)
         {
             string str = String.Empty;
-            if (index == array.Length)
+            if (index == 3)
                 str = String.Format("{0}.{1}.{2}.", array[0], array[1], array[2]);
-            else if (index == array.Length - 1)
+            else if (index == 2)
                 str = String.Format("{0}.{1}..{2}", array[0], array[1], array[3]);
-            else if (index == array.Length - 2)
+            else if (index == 1)
                 str = String.Format("{0}..{1}.{2}", array[0], array[2], array[3]);
-            else if (index == array.Length - 3)
+            else if (index == 0)
                 str = String.Format(".{0}.{1}.{2}", array[1], array[2], array[3]);
 
             return str;
@@ -115,6 +155,14 @@ namespace IPAddressCounter
             lowerBlocks = Array.ConvertAll(lowerBound.Split('.'), byte.Parse);
             upperBlocks = Array.ConvertAll(upperBound.Split('.'), byte.Parse);
 
+            return true;
+        }
+
+        /// <summary>
+        /// Determine the lowest IP Block
+        /// </summary>
+        private static bool DetermineLowerstIpBlock()
+        {
             for (int i = 0; i < lowerBlocks.Length; i++)
             {
                 byte currentLowerValue = lowerBlocks[i];
@@ -122,12 +170,12 @@ namespace IPAddressCounter
                 if (currentLowerValue < currentUpperValue)
                 {
                     smallestIpGroupIndex = i;
-                    break;
+                    return true;
                 }
                 else if (currentLowerValue == currentUpperValue) continue;
             }
 
-            return true;
+            return false;
         }
     }
 }

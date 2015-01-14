@@ -16,7 +16,12 @@ namespace IPAddressCounter
             Console.WriteLine("Please enter the second IP address: ");
             string secondIP = Console.ReadLine();*/
 
+            /*
             string firstIP = "99.100.101.200";
+            string secondIP = "100.101.102.205";
+            */
+
+            string firstIP = "100.101.101.200";
             string secondIP = "100.101.102.205";
 
             IpCounter.GetAllIpAddresses(firstIP, secondIP);
