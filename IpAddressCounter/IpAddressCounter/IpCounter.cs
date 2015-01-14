@@ -21,31 +21,37 @@ namespace IPAddressCounter
 
             while (lowerBlocks[smallestIpGroupIndex] < upperBlocks[smallestIpGroupIndex])
             {
-                CalculateIP(smallestIpGroupIndex, lowerBlocks, upperBlocks);
+                CalculateIP();
             }
         }
 
-        private static void CalculateIP(int index, byte[] firstIpArray, byte[] secondIpArray)
+        private static void CalculateIP()
         {
-            int length = firstIpArray.Length;
+            int length = lowerBlocks.Length;
+            int index = smallestIpGroupIndex;
             IpAddresses = new List<string>();
 
-            for (int i = length; i >= index; i--)
+            while (lowerBlocks[index] < upperBlocks[index])
             {
-                string ip = BuildIp(i, firstIpArray);
-
-                // starting from the back
-                for (int j = lowerBlocks[length - 1]; j <= max + 1; ++j)
+                for (int i = length; i >= index; i--)
                 {
-                    var parts = Regex.Split(ip, @"\.\.");
-                    if (parts.Length != 2)
+                    string ip = BuildIp(i, lowerBlocks);
+
+                    // starting from the back
+                    for (int j = lowerBlocks[length - 1]; j <= max; ++j)
                     {
-                        //if (j == max + 1) ??
-                        IpAddresses.Add(String.Concat(ip, j));
-                        if (smallestIpGroupIndex == (length - 1)) return;
+                        var parts = Regex.Split(ip, @"\.\.");
+                        if (parts.Length != 2)
+                        {
+                            IpAddresses.Add(String.Concat(ip, j));
+                            if (j == max)
+                                lowerBlocks = Array.ConvertAll(
+                                    IpAddresses.Last().Split(' '), byte.Parse); 
+                            if (smallestIpGroupIndex == (length - 1)) return;
+                        }
+                        else
+                            IpAddresses.Add(String.Concat(parts[0], ".", j, ".", parts[1]));
                     }
-                    else
-                        IpAddresses.Add(String.Concat(parts[0], ".", j, ".", parts[1]));
                 }
             }
         }
