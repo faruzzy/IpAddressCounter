@@ -10,107 +10,115 @@ namespace IPAddressCounter
     class IpCounter
     {
         private const byte max = 255;
-        private static string[] lowerBlocks;
-        private static string[] upperBlocks;
-        private static int? startingPointIndex;
+        private static byte[] lowerBlocks;
+        private static byte[] upperBlocks;
+        private static int smallestIpGroupIndex = -1;
         private static List<string> IpAddresses;
+
         public static void GetAllIpAddresses(string firstIP, string secondIP)
         {
-            // overiding for testing purposes
-            firstIP = "99.100.101.200";
-            secondIP = "100.101.102.205";
+            if (!IsValidOperation(firstIP, secondIP)) return;
 
-            int[] firstIpArray = Array.ConvertAll(firstIP.Split('.'), int.Parse);
-            int[] secondIpArray = Array.ConvertAll(secondIP.Split('.'), int.Parse);
-
-            int length = firstIpArray.Length;
-            int smallestIpGroupIndex = -1;
-
-            for (int i = 0; i < length; i++)
+            while (lowerBlocks[smallestIpGroupIndex] < upperBlocks[smallestIpGroupIndex])
             {
-                if (firstIpArray[i] < secondIpArray[i])
-                {
-                    smallestIpGroupIndex = i;
-                    break;
-                }
+                CalculateIP(smallestIpGroupIndex, lowerBlocks, upperBlocks);
             }
-
-            while (firstIpArray[smallestIpGroupIndex] < secondIpArray[smallestIpGroupIndex])
-            {
-                CalculateIP(smallestIpGroupIndex, firstIpArray, secondIpArray);
-            }
-
         }
 
-        private static void CalculateIP(int index, int[] firstIpArray, int[] secondIpArray)
+        private static void CalculateIP(int index, byte[] firstIpArray, byte[] secondIpArray)
         {
             int length = firstIpArray.Length;
             IpAddresses = new List<string>();
 
-            for (int i = length - 1; i >= index; i--)
+            for (int i = length; i >= index; i--)
             {
                 string ip = BuildIp(i, firstIpArray);
-                bool success = false;
 
-                for (int j = firstIpArray[i]; j < max; ++j)
+                // starting from the back
+                for (int j = lowerBlocks[length - 1]; j <= max + 1; ++j)
                 {
-                    IpAddresses.Add(String.Concat(ip, j));
-
-                    if (j == max - 1)
+                    var parts = Regex.Split(ip, @"\.\.");
+                    if (parts.Length != 2)
                     {
-                        //IpAddresses.Add(String.Concat(ip, "0"));
-                        success = true;
+                        //if (j == max + 1) ??
+                        IpAddresses.Add(String.Concat(ip, j));
+                        if (smallestIpGroupIndex == (length - 1)) return;
                     }
-
-                    if (success)
-                    {
-                        continue;
-                    }
+                    else
+                        IpAddresses.Add(String.Concat(parts[0], ".", j, ".", parts[1]));
                 }
             }
         }
 
-        private static string BuildIp(int index, int[] array)
+        /// <summary>
+        /// Returns an incomplete IP address string partition 
+        /// that the main program will complete
+        /// </summary>
+        /// <param name="index">The smallest Ip Group index</param>
+        /// <param name="array">An array of IP address blocks</param>
+        /// <returns>A incomplete IP address string partition</returns>
+        private static string BuildIp(int index, byte[] array)
         {
-            int length = index;
-            var sb = new StringBuilder();
+            string str = String.Empty;
+            if (index == array.Length)
+                str = String.Format("{0}.{1}.{2}.", array[0], array[1], array[2]);
+            else if (index == array.Length - 1)
+                str = String.Format("{0}.{1}..{2}", array[0], array[1], array[3]);
+            else if (index == array.Length - 2)
+                str = String.Format("{0}..{1}.{2}", array[0], array[2], array[3]);
+            else if (index == array.Length - 3)
+                str = String.Format(".{0}.{1}.{2}", array[1], array[2], array[3]);
 
-            for (int i = 0; i < length; i++)
-                sb.Append(array[i] + ".");
-
-            return sb.ToString();
+            return str;
         }
 
-        private static bool IsValidIp(string ip)
+        /// <summary>
+        /// Check whether a string matches the format of
+        /// an IP address
+        /// </summary>
+        /// <param name="ip">A string IP address</param>
+        /// <returns>True if it matches the format, otherwise returns false</returns>
+        private static bool CheckIpFormat(string ip)
         {
             var regex = new Regex(@"\d+");
             string[] blocks = ip.Split('.');
             if (blocks.Length != 4) return false;
 
             foreach (string val in blocks)
-                if (regex.Match(val).Length < 4) return false;
-                else if (Convert.ToInt16(val) > max) return false;
+                if (regex.IsMatch(val))
+                    if (Convert.ToInt16(val) > max) return false;
+                    else continue;
+                else
+                    return false;
 
             return true;
         }
 
+        /// <summary>
+        /// Check wether the lowerBound provided is
+        /// indeed lower than the upperBound provided
+        /// </summary>
+        /// <param name="lowerBound">A string representing the lower bound IP Address</param>
+        /// <param name="upperBound">A string representing the upper bound Ip Address</param>
+        /// <returns>Returns true if the Operation is legit, otherwise returns false</returns>
         private static bool IsValidOperation(string lowerBound, string upperBound)
         {
-            if (!IsValidIp(lowerBound) || !IsValidIp(upperBound))
+            if (!CheckIpFormat(lowerBound) || !CheckIpFormat(upperBound))
                 return false;
 
-            lowerBlocks = lowerBound.Split('.');
-            upperBlocks = upperBound.Split('.');
+            lowerBlocks = Array.ConvertAll(lowerBound.Split('.'), byte.Parse);
+            upperBlocks = Array.ConvertAll(upperBound.Split('.'), byte.Parse);
 
             for (int i = 0; i < lowerBlocks.Length; i++)
             {
-                if (Convert.ToByte(lowerBlocks[i]) <= Convert.ToByte(upperBound[i]))
-                    continue;
-                else
+                byte currentLowerValue = lowerBlocks[i];
+                byte currentUpperValue = upperBlocks[i];
+                if (currentLowerValue < currentUpperValue)
                 {
-                    startingPointIndex = i;
-                    return false;
+                    smallestIpGroupIndex = i;
+                    break;
                 }
+                else if (currentLowerValue == currentUpperValue) continue;
             }
 
             return true;
