@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -26,6 +27,7 @@ namespace IPAddressCounter
         private static void Compute()
         {
             DescendIpBlock();
+            //AscendIPBlock();
         }
 
         /// <summary>
@@ -36,10 +38,10 @@ namespace IPAddressCounter
         private static void AscendIPBlock()
         {
             DetermineLowerstIpBlock();
-            while(lowerBlocks[3] < upperBlocks[4])
+            while(lowerBlocks[3] != upperBlocks[3])
             {
-                int i = smallestIpGroupIndex;
-
+                int idx = smallestIpGroupIndex;
+                //for(int j = 0; j < lowerBlocks.Length; j++)
             }
         }
 
@@ -51,19 +53,21 @@ namespace IPAddressCounter
         {
             int length = lowerBlocks.Length;
             int index = smallestIpGroupIndex;
+            //byte[] currentIpBlock = new byte[4];
+            string regex = @"\.\.";
             IpAddresses = new List<string>();
 
-            while (lowerBlocks[index] < upperBlocks[index])
+            while (lowerBlocks[index] != upperBlocks[index] && lowerBlocks[3] != upperBlocks[3])
             {
                 for (int i = length - 1; i >= index; i--)
                 {
                     string ip = BuildIp(i, lowerBlocks);
-
                     for (int j = lowerBlocks[i]; j <= max; j++)
                     {
-                        if(!Regex.IsMatch(ip, @"\.\."))
+                        if(!Regex.IsMatch(ip, regex))
                         {
                             IpAddresses.Add(String.Concat(ip, j));
+                            //currentIpBlock = Array.ConvertAll(String.Concat(ip, j).Split('.'), byte.Parse);
                             if (j == max)
                                 lowerBlocks = 
                                     Array.ConvertAll(IpAddresses.Last().Split('.'), byte.Parse); 
@@ -72,7 +76,7 @@ namespace IPAddressCounter
                        }
                        else
                        {
-                           var parts = Regex.Split(ip, @"\.\.");
+                           var parts = Regex.Split(ip, regex);
                            if (i != index)
                                for (int k = j + 1; k <= max; k++)
                                {
@@ -82,17 +86,24 @@ namespace IPAddressCounter
                                }
                            else if (i == index)
                            {
+                               //byte[] currentIpBlock = Array.ConvertAll(IpAddresses.Last().Split('.'), byte.Parse);
                                for (int k = j + 1; k <= upperBlocks[i]; k++)
-                                   IpAddresses.Add(String.Concat(parts[0], ".", k, ".", parts[1]));
+                                   if (upperBlocks[i + 1] == 255)
+                                       IpAddresses.Add(String.Concat(parts[0], ".", k, ".", "0"));
+                                   else
+                                       IpAddresses.Add(String.Concat(parts[0], ".", k, ".", parts[1]));
 
-                               lowerBlocks = Array.ConvertAll(IpAddresses.Last().Split('.'), byte.Parse);
+                               upperBlocks = Array.ConvertAll(IpAddresses.Last().Split('.'), byte.Parse);
                                break;
                            }
                        }
                     }
                 }
             }
-            AscendIPBlock();
+
+            using(var sw = new StreamWriter("IP address list.txt"))
+                foreach (var ipAddress in IpAddresses)
+                    sw.WriteLine(ipAddress);
         }
 
         /// <summary>
