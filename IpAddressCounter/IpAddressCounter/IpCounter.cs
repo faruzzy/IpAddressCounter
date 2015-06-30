@@ -34,22 +34,28 @@ namespace IPAddressCounter
 
             while (!IsAtMaxValue(lowerBlocks, upperBlocks))
             {
-                if (lowerBlocks[index] < max && index < 3)
-                    lowerBlocks[index]++;
-                else
+                if (lowerBlocks[index] < max)
                 {
-                    lowerBlocks[0] = 0;
-                    index--;
-                }
-
-                if (lowerBlocks[index] <= max)
-                {
-                    if (bumping)
+                    if (index >= 0 && bumping)
                     {
                         bumping = false;
+                        while (lowerBlocks[index] == max)
+                        {
+                            index--;
+                            lowerBlocks[index] = 0;
+                        }
+                        lowerBlocks[index]++;
+                        IpAddresses.Add(string.Join(".", lowerBlocks));
                         index = 3;
                     }
-                    IpAddresses.Add(string.Join(".", lowerBlocks));
+                    else
+                    {
+                        if (index >= 0)
+                        {
+                            lowerBlocks[index]++;
+                            IpAddresses.Add(string.Join(".", lowerBlocks));
+                        }
+                    }
                 }
                 else
                 {
@@ -59,9 +65,11 @@ namespace IPAddressCounter
                 }
             }
 
-            using(var sw = new StreamWriter("IP address list.txt"))
+            using (var sw = new StreamWriter("IP_address_list.txt"))
+            {
                 foreach (var ipAddress in IpAddresses)
                     sw.WriteLine(ipAddress);
+            }
         }
 
         /// <summary>
