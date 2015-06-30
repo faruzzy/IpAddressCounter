@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace IPAddressCounter
 {
     class IpCounter
     {
-        private const byte max = 255;
+        private const byte max = byte.MaxValue;
         private static int[] lowerBlocks;
         private static int[] upperBlocks;
-        private static int smallestIpGroupIndex = -1;
         private static List<string> IpAddresses;
 
         public static void GetAllIpAddresses(string firstIP, string secondIP)
