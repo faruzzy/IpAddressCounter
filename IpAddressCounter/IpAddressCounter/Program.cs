@@ -34,11 +34,6 @@ namespace IPAddressCounter
                     secondIP = args[1];
             }
 
-            /** for testing 
-            string firstIP = "100.100.254.200";
-            string secondIP = "100.101.255.205";
-            */
-
             IpCounter.GetAllIpAddresses(firstIP, secondIP);
         }
     }
