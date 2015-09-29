@@ -15,20 +15,16 @@ namespace IPAddressCounter
         public static void GetAllIpAddresses(string firstIP, string secondIP)
         {
             if (!IsValidOperation(firstIP, secondIP)) return;
-            Compute();
+            Compute(IpAddresses: new List<string>());
         }
 
         /// <summary>
         /// Start descending the Ip Blocks until the lowest
         /// is reached
         /// </summary>
-        private static void Compute()
+        private static void Compute(List<string> IpAddresses, int index = 3, bool bumping = false)
         {
-            int index = 3;
-            bool bumping = false;
-            IpAddresses = new List<string>();
-
-            while (!IsAtMaxValue(lowerBlocks, upperBlocks))
+            if (!IsAtMaxValue(lowerBlocks, upperBlocks))
             {
                 if (lowerBlocks[index] < max)
                 {
@@ -59,6 +55,7 @@ namespace IPAddressCounter
                     bumping = true;
                     index--;
                 }
+                Compute(IpAddresses, index, bumping);
             }
 
             using (var sw = new StreamWriter("IP_address_list.txt"))
