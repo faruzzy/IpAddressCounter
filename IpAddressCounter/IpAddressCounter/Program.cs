@@ -6,11 +6,33 @@ namespace IPAddressCounter
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Please enter the starting IP address: ");
-            string firstIP = Console.ReadLine();
+            string firstIP = string.Empty;
+            string secondIP = string.Empty;
 
-            Console.WriteLine("Please enter the second IP address: ");
-            string secondIP = Console.ReadLine();
+            if (args.Length == 0 || args.Length == 1)
+            {
+                if (args.Length == 1)
+                {
+                    Console.Error.WriteLine("Not enough arguments were passed!");
+                }
+
+                Console.Write("Please enter the starting IP address: ");
+                firstIP = Console.ReadLine();
+                Console.WriteLine();
+
+                Console.Write("Please enter the second IP address: ");
+                secondIP = Console.ReadLine();
+                Console.WriteLine();
+            }
+
+            if (args.Length == 2)
+            {
+                if (!args[0].Equals(""))
+                    firstIP = args[0];
+
+                if (!args[1].Equals(""))
+                    secondIP = args[1];
+            }
 
             /** for testing 
             string firstIP = "100.100.254.200";
