@@ -14,7 +14,12 @@ namespace IPAddressCounter
 
         public static void GetAllIpAddresses(string firstIP, string secondIP)
         {
-            if (!IsValidOperation(firstIP, secondIP)) return;
+            if (!IsValidOperation(firstIP, secondIP))
+            {
+                Console.Error.WriteLine("Invalid Format - Please make sure the IP addresses you entered have the valid format");
+                Console.ReadLine();
+                return;
+            }
             Compute(IpAddresses: new List<string>());
         }
 
@@ -36,33 +41,42 @@ namespace IPAddressCounter
                             index--;
                             lowerBlocks[index] = 0;
                         }
-                        lowerBlocks[index]++;
                         IpAddresses.Add(string.Join(".", lowerBlocks));
+                        lowerBlocks[index]++;
                         index = 3;
                     }
                     else
                     {
                         if (index >= 0)
                         {
-                            lowerBlocks[index]++;
                             IpAddresses.Add(string.Join(".", lowerBlocks));
+                            lowerBlocks[index]++;
                         }
                     }
                 }
                 else
                 {
+                    if (lowerBlocks[index] == max)
+                    {
+                        IpAddresses.Add(string.Join(".", lowerBlocks));
+                    }
                     lowerBlocks[index] = 0;
                     bumping = true;
                     index--;
                 }
                 Compute(IpAddresses, index, bumping);
             }
-
-            using (var sw = new StreamWriter("IP_address_list.txt"))
+            else
             {
-                foreach (var ipAddress in IpAddresses)
-                    sw.WriteLine(ipAddress);
+                IpAddresses.Add(string.Join(".", lowerBlocks));
+                using (var sw = new StreamWriter("IP_address_list.txt"))
+                {
+                    foreach (var ipAddress in IpAddresses)
+                        sw.WriteLine(ipAddress);
+                }
+                return;
             }
+
         }
 
         /// <summary>
@@ -82,6 +96,34 @@ namespace IPAddressCounter
                 return true;
             }
             return false;
+        }
+
+        private static bool CheckConstraint(string lowerBound, string upperBound)
+        {
+            var lowerArray = lowerBound.Split('.');
+            var upperArray = upperBound.Split('.');
+
+            for (int i = lowerArray.Length - 1; i >= 0; i--)
+            {
+                if (int.Parse(lowerArray[i]) > int.Parse(upperArray[i]))
+                {
+                    int counter = i;
+                    bool check = false;
+                    while (counter > 0 && !check)
+                    {
+                        if (int.Parse(lowerArray[i - 1]) >= int.Parse(upperArray[i - 1]))
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            counter--;
+                        }
+                    }
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -107,6 +149,7 @@ namespace IPAddressCounter
         private static bool IsValidOperation(string lowerBound, string upperBound)
         {
             if (!CheckIpFormat(lowerBound) || !CheckIpFormat(upperBound)) return false;
+            if (!CheckConstraint(lowerBound, upperBound)) return false;
 
             lowerBlocks = Array.ConvertAll(lowerBound.Split('.'), int.Parse);
             upperBlocks = Array.ConvertAll(upperBound.Split('.'), int.Parse);
