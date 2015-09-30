@@ -98,29 +98,25 @@ namespace IPAddressCounter
             return false;
         }
 
+        /// <summary>
+        /// Check for constraints. 
+        /// An IP address block (whent it has a preceeding block) can be greater 
+        /// than the corresponding (upper) block only if its preceeded by a block that
+        /// is not greater that the block associated with it.
+        /// </summary>
+        /// <param name="lowerBound">A string representing the lower bound IP Address</param>
+        /// <param name="upperBound">A string representing the upper bound Ip Address</param>
+        /// <returns>False if the constraint rule is not met, otherwise it returns true</returns>
         private static bool CheckConstraint(string lowerBound, string upperBound)
         {
             var lowerArray = lowerBound.Split('.');
             var upperArray = upperBound.Split('.');
 
-            for (int i = lowerArray.Length - 1; i >= 0; i--)
+            for (int i = lowerArray.Length - 1; i >= 1; i--)
             {
                 if (int.Parse(lowerArray[i]) > int.Parse(upperArray[i]))
-                {
-                    int counter = i;
-                    bool check = false;
-                    while (counter > 0 && !check)
-                    {
-                        if (int.Parse(lowerArray[i - 1]) >= int.Parse(upperArray[i - 1]))
-                        {
-                            return false;
-                        }
-                        else
-                        {
-                            counter--;
-                        }
-                    }
-                }
+                    if (int.Parse(lowerArray[i - 1]) >= int.Parse(upperArray[i - 1]))
+                        return false;
             }
 
             return true;
