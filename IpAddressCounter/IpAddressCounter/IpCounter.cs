@@ -25,7 +25,10 @@ namespace IPAddressCounter
 
         /// <summary>
         /// Start descending the Ip Blocks until the lowest
-        /// is reached
+        /// is reachedm and start going up again until the two IpAddresses match
+        /// <param name="bumping">A flag to indicate whether we're bumping the previous block</param>
+        /// <param name="index">Starting index</param>
+        /// <param name="IpAddresses">A list of all IP addresses between the lower and upper Ip (Inclusive)</param>
         /// </summary>
         private static void Compute(List<string> IpAddresses, int index = 3, bool bumping = false)
         {
